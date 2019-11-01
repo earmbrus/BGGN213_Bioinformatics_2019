@@ -1,21 +1,15 @@
----
-title: "Class06_homework_Rmarkdown_final"
-output: github_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+Class06\_homework\_Rmarkdown\_final
+================
 
 ## Before we can work with read.pdb, we have to load the package bio3d.
 
-```{r}
+``` r
 library(bio3d)
 ```
 
 ## Function:
 
-```{r}
+``` r
 plot_protein <- function (x) {
   your_protein <- read.pdb(x) #Read the pdb file for protein x, making information from that file available for manipulation.
   
@@ -27,22 +21,24 @@ plot_protein <- function (x) {
 }
 ```
 
-### Here, we use the function on a protein with pdb designation "4AKE". We could use this function to do the same for any protein pdb file.
+### Here, we use the function on a protein with pdb designation “4AKE”. We could use this function to do the same for any protein pdb file.
 
-```{r}
+``` r
 plot_protein("4AKE")
 ```
 
-### Success!
+    ##   Note: Accessing on-line PDB file
+
+![](Class06_homework_final_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+### Success\!
 
 # Notes on the function:
 
-#### Input: 
+#### Input:
+
 #### The input of the function is a pdb coordinate file, which is represented by a four letter code in this case. This file contains the total number of atoms in the protein, coordinate data concerning where these atoms are in the protein, the types of atoms, the protein sequence, the chains in the protein, etc. Information about each atom is stored in a data frame.
 
 #### What does it do and what is its output?:
+
 #### This function takes a pdb.file, extracts atom displacement data for a specific part of that pdb.file, and plots the degree of displacement for each residue.
-
-
-
-
