@@ -1,0 +1,124 @@
+---
+title: "Hands-On Homework 20191018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#Handout Hands-on exercise:
+#download package bio3d:
+#install.packages("bio3d")
+#Use function from package: issue library
+
+```{r}
+library(bio3d)
+```
+
+#What is the package? Has functions in it that are useful! including read.pdb: reads the crystal structure of protein...
+
+```{r}
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s3, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor") 
+```
+
+#What kind of object is returned from the read.pdb() function?
+
+```{r}
+x <- read.pdb("4AKE")
+is.list(x)
+```
+
+#What does the trim.pdb() function do?
+
+```{r}
+?trim.pdb
+```
+
+#What input parameter would turn off the marginal black and grey rectangles in the plots and what do they represent?
+
+```{r}
+plotb3(s3.b, typ="l", ylab="Bfactor") 
+```
+#The input parameter is "sse=s3.chainA". Omit by setting "sse=FALSE". They represent areas that form helices and sheets in the protein structure.
+
+#What would be a better plot to compare across the different proteins? 
+#Put them all in the same graph
+
+```{r}
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+points(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor", col="orange")
+points(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor", col="purple") 
+```
+
+#Now want to know how similar the proteins are:
+
+```{r}
+hc <- hclust( dist( rbind(s1.b, s2.b, s3.b) ) )
+plot(hc)
+```
+
+#6: how to generalize original code for any proteins?
+
+```{r}
+# Can you improve this analysis code?
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+#first, name functions
+
+```{r}
+graph_protein <- function(x) {#x is the pdb file to be called
+  protein <- read.pdb(x) #This calls the pdb file
+  protein.trimmed <- trim.pdb(protein, chain="A", elety="CA") #This selects specific part of protein called.
+  protein.b <- protein.trimmed$atom$b #I don't know what this does
+  plotb3(protein.b, sse=protein.trimmed, typ="l", ylab="Bfactor")
+}
+```
+
+```{r}
+graph_protein("1E4Y")
+```
+
