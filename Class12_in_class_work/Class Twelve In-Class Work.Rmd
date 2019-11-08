@@ -28,4 +28,13 @@ protein <- atom.select(hiv, "protein", value = TRUE)
 write.pdb(protein, file = "1hsg_protein.pdb")
 ```
 
+### Format an output file with config.txt. 
+#### num_modes = 50 <- Number of results it makes
+#### out = all.pdbqt <- Type of file in output.
+
+# Inspect docking results. "multi=TRUE" allows us to read the file.
+```{r}
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
+```
 
