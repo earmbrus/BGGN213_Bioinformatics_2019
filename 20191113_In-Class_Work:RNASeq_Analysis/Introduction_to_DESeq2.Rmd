@@ -1,0 +1,232 @@
+---
+title: "Introduction to DESeq2"
+author: Emily Armbruster
+output: github_document
+---
+
+```{r eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install()
+# For this class, you'll also need DESeq2:
+BiocManager::install("DESeq2")
+```
+
+#Section 2
+
+##### We have already downloaded the data for our introduction to DESeq2. These files are named "airway_scaledcounts.csv" and "airway_metadata.csv". 
+
+##### Use "read.csv()" to read the count and metadata
+
+```{r}
+counts <- read.csv("airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <- read.csv("airway_metadata.csv", stringsAsFactors = FALSE)
+```
+##### Now take a look in each file:
+
+```{r}
+head(counts)
+head(metadata)
+```
+
+##### How many genes are in this dataset?
+
+```{r}
+nrow(counts)
+```
+
+##### 38694 genes!
+
+##### How many experiments do we have?
+
+```{r}
+ncol(counts) - 1
+```
+
+##### 8 experiments total...
+##### We can check the metadata to find out which ones are control experiments and which are experimental conditions. Click on it's name in the "environment" panel. The "dex" column tells you which experiments are controls.
+
+##### Let's make sure that the metadata id col matches the colnames of counts
+```{r}
+colnames(counts)[-1]
+```
+
+```{r}
+metadata$id
+```
+```{r}
+(colnames(counts)[-1] == metadata$id)
+```
+##### So these two lists are identical! The experiment names for the two tables match.
+
+##### The all() function is useful for looking across a vector of logicals.
+
+```{r}
+all(c(T, T, T))
+```
+
+# Section 3: Toy with Differential Gene Expression
+
+## NOTE: This analysis is for demonstration only. Never do differential expression analysis this way!
+
+##### So now our goal is to find out what effect the anti-asthma drug has on these cells.
+
+#### First step: condense the data in the control settings into one set of values. Take the mean of the 4 control experiments' data.
+
+```{r}
+# First select the columns in the metadata file that are controls
+control <- metadata[metadata[,"dex"]=="control",]
+#Then take the average of the counts for each of the experiments selected in the previous step.
+control.mean <- rowSums( counts[ ,control$id] )/4 
+names(control.mean) <- counts$ensgene
+```
+##### Print out the different steps of this code to see what it's making:
+```{r}
+control
+counts[,control$id]
+control.mean
+```
+##### Note that using 4 instead of number of columns means that if you did more experiments it would be very difficult to use this code. Instead, lets's use the number of columns:
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+#Then take the average of the counts for each of the experiments selected in the previous step.
+control.mean <- rowSums( counts[ ,control$id] )/length(control$id) 
+names(control.mean) <- counts$ensgene
+```
+
+##### Do the same for controls:
+
+```{r}
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowSums( counts[ ,treated$id] )/length(treated$id) 
+names(treated.mean) <- counts$ensgene
+```
+##### Combine for bookkeeping purposes...
+
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+```
+
+##### Find out the sums of all the means...
+```{r}
+colSums(meancounts)
+```
+
+##### Now make a scatter plot to show mean treated vs mean controls.
+
+```{r}
+plot(meancounts, xlab="control", ylab="treated")
+```
+
+##### This looks pretty weird though doesn't it? There are thousands of genes in this dataset but it doesn't look like that many points as so many are clumped near the origin. Try to separate out the data via a log scale! This is because most of the genes have a relatively low number of counts.
+
+```{r}
+plot(meancounts, xlab="control", ylab="treated", log = "xy")
+```
+##### Can find genes that might be affected by the drug by looking at genes farther away from the m =1 line. Normally, we like to look for a log2 change.
+
+##### Calculate the log2 changes, add it to the metadata file and inspect as follows. If the gene expression decreases with treatment, the log2fc value will be negative. If the gene expression increases with treatment, the log2fc value will be positive.
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+##### NaN = "not a number". Means the value is undefined in some way. Either a number divided by zero.
+##### -Inf = "negative infinity".
+
+##### Let's remove these weird results.
+
+##### The which() function tells you indices of the logical objects = TRUE. The arr.ind argument tells whether the incices should be returned when x is an array.
+
+##### The unique() function selects the unique elements. Duplicates are removed.
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+head(mycounts)
+```
+
+##### How many genes do we actually have data for?
+```{r}
+nrow(mycounts)
+```
+
+# In-class addition: Test for finding zero entries:
+### With a vector
+```{r}
+x <- c(5, 8, 0, 5)
+x == 0
+which(x==0)
+```
+
+### With a dataframe
+```{r}
+x <- data.frame(happy = c(5, 6, 0, 0), sad = c(0, 5 ,5, 0))
+x == 0
+which(x==0)
+which(x==0, arr.ind = TRUE)
+```
+##### Tells you that the first TRUE element is in row 3, column 1, etc.
+
+##### Focus only on the rows that have zero entries:
+```{r}
+which(x==0, arr.ind = TRUE)[,1]
+#Tell it to use unique to only return unique elements in the first column of the which() array.
+unique(which(x==0, arr.ind = TRUE)[,1])
+```
+
+##### One more example:
+
+```{r}
+x <- data.frame(happy = c(0, 2, 6, 0, 12, 0), sad = c(0, 3, 0, 0, 0, 4))
+```
+
+```{r}
+which(x==0, arr.ind = TRUE)
+```
+
+# End in-class tangent.
+
+##### Common threshold for "differential expression" is a fold change of 2: greater than 2 or less than -2.
+
+##### Let's filter the data so that we only have genes above that change threshold.
+##### First make a logical vector of genes. A change greater than 2 fold = TRUE.
+
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+sum(up.ind)
+sum(down.ind)
+```
+##### So a total of 617 genes are differentially expressed.
+
+# Section 4: Adding Annotation Data
+
+##### First install packages for analysis:
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+```
+##### To see all things available in the "org.Hs.eg.db" package:
+```{r}
+columns(org.Hs.eg.db)
+```
+
+##### We can use the maplds() function to add individual columns to the results table. Provide row names as a key and specify that keytype = ENSEMBL. column argument tells maplds() function what information we want and the multiVals argument tells the function what to do if there are multiple possible values for single input value.
+
+```{r}
+mycounts$symbol <- mapIds(org.Hs.eg.db, keys=row.names(mycounts), 
+# Our genenames 
+keytype="ENSEMBL",
+# The format of our genenames
+column="SYMBOL",
+# The new format we want to add
+multiVals="first")
+```
+```{r}
+head(mycounts)
+```
+#### Notice the "symbol" column has been added to the end of the dataframe. Run the maplds() function twice more to add two more columns: "entrez" and "uniprot"
+
+```{r}
+mycounts$uniprot <- mapIds(org.Hs.eg.db, keys=row.names(mycounts), keytype="UNIPROT", column="UNIPROT", multiVals="first")
+```
+
