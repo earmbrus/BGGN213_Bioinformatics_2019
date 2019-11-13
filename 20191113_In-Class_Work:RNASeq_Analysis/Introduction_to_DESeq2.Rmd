@@ -224,9 +224,74 @@ multiVals="first")
 ```{r}
 head(mycounts)
 ```
-#### Notice the "symbol" column has been added to the end of the dataframe. Run the maplds() function twice more to add two more columns: "entrez" and "uniprot"
+
+# DESeq2 analysis
+
+##### Load DESeq2 with library(). We will use the DESeqDataSetFromMatrix() function to build the required DESeqDataSet object and call it dds, short for our DESeqDataSet. 
+```{r}
+library(DESeq2)
+citation("DESeq2")
+```
 
 ```{r}
-mycounts$uniprot <- mapIds(org.Hs.eg.db, keys=row.names(mycounts), keytype="UNIPROT", column="UNIPROT", multiVals="first")
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+
+```{r}
+sizeFactors(dds)
+dispersions(dds)
+dds <- DESeq(dds)
+```
+
+
+```{r}
+res <- results(dds)
+res
+```
+
+```{r}
+summary(res)
+```
+
+#### SKIPPED IN CLASS!! COME BACK AND FIX!
+
+# Section 6: Data Visualization
+##### Make a volcano plot
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+      xlab="Log2(FoldChange)",
+      ylab="-Log(P-value)")
+```
+##### Add some cut-off lines
+
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+      xlab="Log2(FoldChange)",
+      ylab="-Log(P-value)")
+
+abline(v=c(-2,2), col="darkgray", lty=2)
+abline(h=-log(0.05), col="darkgray", lty=2)
+```
+##### Time to color it!
+
+```{r}
+# Setup our custom point color vector. The values in brackets are the indices of the values.
+mycols <- rep("gray", nrow(res))
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+# Volcano plot with custom colors 
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+# Cut-off lines
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.1), col="gray", lty=2)
 ```
 
