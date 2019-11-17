@@ -1,0 +1,203 @@
+---
+title: "Data Exploration and Visualization in R"
+author: Emily Armbruster
+output: github_document
+---
+
+# Section 1: Getting Organized
+##### After creating a new project, retrieve data for analysis. In this case, this data is in the bimm143_05_rstats folder uploaded along with this file. Remember that after downloading a file, it must be placed in the same folder as your R Project to be detected by R.
+
+# Section 2: Customizing Plots
+##### Use the plot() function to create many different kinds of plots in R. This function takes many arguments so you can easily customize your plots.
+
+## Section 2A: Line Plot
+##### It can be useful to add a line to a scatter plot to indicate the relationship between the x and y axes. Let's use the data from the file weight_chart.txt (which contains data about a baby's growth over the first 9 months of life) to create a line plot.
+##### First, let's examine the data before importing the data into R: Double click on the weight_chart.txt name to get a preview of the data. Note that the columns are separated by spaces and that the first row has the "header" containing the names of the types of data in each column.
+##### Now let's pick a function to read/import the data. But which function should we use? Let's look at the read.table() function help page... It appears that read.table() is the best function to read the data based on it's format. 
+
+##### Make sure to set the header argument to TRUE. Let's compare what happens if you leave it set to FALSE as well. Also remember to put the file name in quotation marks and include the location of the file so R can find it!
+
+```{r}
+read.table("bimm143_05_rstats/weight_chart.txt")
+read.table("bimm143_05_rstats/weight_chart.txt", TRUE)
+```
+##### Note that if you do not set the header argument to TRUE, R interprets every row to be part of the data instead of labeling each column with the appropriate name.
+##### Let's assign the table with a header to the name "weight"
+```{r}
+weight <- read.table("bimm143_05_rstats/weight_chart.txt", TRUE)
+```
+##### Use the plot() function to plot this data. You can tell R which variable to plot on the x and y axes. The first argument is plotted on the x axis. The second argument is plotted on the y axis. However if you simply enter "weight", R will put the first column on the x axis.
+```{r}
+plot(weight$Age, weight$Weight)
+plot(weight$Weight, weight$Age)
+plot(weight)
+```
+##### Now add a line to this plot with the "type=" argument.
+```{r}
+plot(weight$Age, weight$Weight, "l")
+```
+##### Now change the point characters to filled suqare with the "pch" argument. This argument accepts an integer corresponding to a specific shape. Change the plot type to "o" so that it can be at once a scatter and line plot.
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15)
+```
+##### Next, change the size of the squares to 1.5x as big as the default.
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15, cex = 1.5)
+```
+##### Change the width of the line to 2x as thick as the default.
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15, cex = 1.5, lwd = 2)
+```
+##### Change the y axis to scale between 2 and 10 kg.
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15, cex = 1.5, lwd = 2, ylim = c(2, 10))
+```
+##### Change the x-axis label to "Age" and the y-axis label to "Weight (kg)".
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15, cex = 1.5, lwd = 2, ylim = c(2, 10), xlab = "Age (months)", ylab = "Weight (kg)")
+```
+##### Add a label to the plot and make the line and points blue.
+```{r}
+plot(weight$Age, weight$Weight, type = "o", pch = 15, cex = 1.5, lwd = 2, ylim = c(2, 10), xlab = "Age (months)", ylab = "Weight (kg)", main = "Baby Weight with Age", col = "blue")
+```
+
+## Section 2B: Barplot
+
+##### The most common approach to visualizing amounts (i.e. numerical values shown for some set of categories) is using bars, either vertically or horizontally arranged. Here we will explore generating and customizing output of the barplot() function.
+##### We will use the feature_counts.txt data for this analysis. This file contains data about the number of features of different types in mouse GRCm38 genome. First, read this data into R. Note that this time, the columns are separated by tabs instead of single spaces.
+```{r}
+read.table("bimm143_05_rstats/feature_counts.txt", TRUE, sep = "\t")
+```
+##### Store this data as an object called "mouse". The field separator for this file is tab.
+```{r}
+mouse <- read.table("bimm143_05_rstats/feature_counts.txt", TRUE, sep = "\t")
+barplot(mouse$Count, horiz = FALSE)
+```
+
+##### But there's a better way to look at this data: make the bars horizontal rather than verticle, add a count axis label "Counts". Set names.arg in barplot() to Feature column of the dataframe and give the barplot an appropriate name as well. Make the text labels horizontal. Set the plot parameters to accomodate the labels.
+
+```{r}
+mouse <- read.table("bimm143_05_rstats/feature_counts.txt", TRUE, sep = "\t")
+
+par(mar = c(2, 11, 1, 6))
+barplot(mouse$Count, names.arg=mouse$Feature, horiz = TRUE, main="Number of Features in the Mouse GRCm38 Genome", las=1)
+```
+
+## Section 2C: Histograms
+##### We often want to understand how a particular variable is distributed in a dataset. Histograms and density plots provide the most intuitive visualizations of a given distribution.
+
+##### Use this hist() function to plot out the distribution of 10000 points sampled from a standard normal distribution (use the rnorm() function) along with another 10000 points sampled from the same distribution but with an offset of 4.
+
+##### Example: x <- c(rnorm(10000),rnorm(10000)+4). Find a suitable number of breaks to make the plot look nicer (breaks=10 for example)
+
+```{r}
+ x <- c(rnorm(10000),rnorm(10000)+4)
+hist(x)
+```
+
+# Section 3: Using color in plots
+
+## Section 3A. Providing color vectors
+
+##### There are three fundamental use cases for color in data visualizations: we can use color to distinguish groups of data from each other, to represent data values, and to highlight. In all cases with base R plotting functions we need to provide a vector of colors as input to the plotting function.
+
+##### The male_female_counts.txt contains time series split into male and female count values. Plot this as a bar plot and make the bars all different colors with the rainbow() function. The only argument the rainbow() function needs is a numeric telling it how many colors to generate. Make this a vector which can then be used on the bar plot.
+
+```{r}
+mf <- read.delim("bimm143_05_rstats/male_female_counts.txt")
+
+barplot(mf$Count, names.arg=mf$Sample, col=rainbow(nrow(mf)), 
+        las=2, ylab="Counts")
+```
+
+##### Re-plot, and make the bars for the males a different color to those for the females. Notice that in the file, male and female mice alternate. Therefore, you can use a color vector to color every other bar a certain color since the barplot function will repeat the color vector to color all bars.
+
+```{r}
+barplot(mf$Count, names.arg=mf$Sample, col=c("blue", "red"), 
+        las=2, ylab="Counts")
+```
+
+## Section 3B. Coloring by value
+##### The file up_down_expression.txt contains an expression comparison dataset, but has an extra column that classifies the rows into one of 3 groups (up, down or unchanging). Here we aim to produce a scatterplot (plot) with the up being red, the down being blue and the unchanging being grey.
+
+##### The read.delim function is useful for reading data matrices with rows as cases and columns as variables.
+
+```{r}
+genes <- read.delim("bimm143_05_rstats/up_down_expression.txt")
+genes
+```
+
+##### Use the nrow() function to determine the number of genes in this file.
+```{r}
+nrow(genes)
+```
+#### 5196 genes.
+
+##### You can determine how many genes are up regulated, down regulated, or unchanging between two conditions in the "state" column of the "genes" matrix: genes$State. Make a table of just this data. table() sorts the data in the given vector by level.
+
+```{r}
+table(genes$State)
+```
+
+##### To graph this data, plot the Condition1 column against the Condition2 column. Use the col argument to color the genes by their state: col = genes$State.
+
+```{r}
+plot(genes$Condition1, genes$Condition2, col = genes$State, xlab = "Expresison condition 1", ylab = "Expression condition 2")
+```
+
+##### But this default palette is kind of garish and does not suggest to the eye that some of this data might be more important to us (ie genes that are upregulated or downregulated as opposed to not changing) than the rest. So let's change the color palette!
+
+##### First, let's establish the current color palette and corresponding data type:
+
+```{r}
+palette()
+levels(genes$State)
+```
+
+##### This shows the list of colors in the default palette and that the order of the levels in the State column are 1) "down", 2) "unchanging" and 3) "up". Now we want to change the colors so that upregulated genes are red, unchanging are gray (indicating they are less interesting for our analysis) and downregulated genes are blue.
+
+```{r}
+genes_palette <- palette(c("blue", "gray", "red"))
+plot(genes$Condition1, genes$Condition2, col = genes$State, xlab = "Expresison condition 1", ylab = "Expression condition 2")
+```
+
+## Section 3C: Dynamics of Color
+
+##### We might want to use color to highlight something quantitative about data.
+##### For instance, we can color by point density in a scatterplot so that we can get a better sense of where most of the points fall. R has a function for this called densCols()
+
+##### Let's play with this function with the data in the "expression_methylation.txt" file:
+
+```{r}
+meth <- read.delim("bimm143_05_rstats/expression_methylation.txt")
+nrow(meth)
+```
+
+##### There are 9241 genes in this dataset.
+
+##### Make a scatterplot of this data, plotting the gene.meth column against the expression column:
+
+```{r}
+plot(meth$gene.meth, meth$expression)
+```
+
+##### Wow, what a mess. This is not very meaningful to look at. We can fix this by using the densCol() function.
+
+```{r}
+dcols <- densCols(meth$gene.meth, meth$expression)
+plot(meth$gene.meth, meth$expression, pch=20, col=dcols)
+```
+##### That's better, but we could make it even more clear by only looking at genes with greater than zero expression values. One way to do this is to create a list of the indices of all gene expresison genes that have nonzero values in the expression column. Remember to make a new color density palette.
+```{r}
+inds.nonzero <- meth$expression > 0
+dcol.nonzero <- densCols(meth$gene.meth[inds.nonzero], meth$expression[inds.nonzero])
+plot(meth$gene.meth[inds.nonzero], meth$expression[inds.nonzero], pch=20, col=dcol.nonzero)
+```
+
+##### You can change the colors of the density gradient by using the colramp argument:
+
+```{r}
+dcols.custom <- densCols(meth$gene.meth[inds.nonzero], meth$expression[inds.nonzero], col= colorRampPalette(c("blue", "green", "yellow", "orange", "red")))
+
+plot(meth$gene.meth[inds.nonzero], meth$expression[inds.nonzero], col = dcols.custom, pch = 20)
+```
