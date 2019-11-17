@@ -187,7 +187,9 @@ plot(meth$gene.meth, meth$expression)
 dcols <- densCols(meth$gene.meth, meth$expression)
 plot(meth$gene.meth, meth$expression, pch=20, col=dcols)
 ```
+
 ##### That's better, but we could make it even more clear by only looking at genes with greater than zero expression values. One way to do this is to create a list of the indices of all gene expresison genes that have nonzero values in the expression column. Remember to make a new color density palette.
+
 ```{r}
 inds.nonzero <- meth$expression > 0
 dcol.nonzero <- densCols(meth$gene.meth[inds.nonzero], meth$expression[inds.nonzero])
