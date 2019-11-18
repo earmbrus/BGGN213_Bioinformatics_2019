@@ -1,0 +1,176 @@
+---
+title: "Hands on with Principal Component Analysis (PCA)"
+author: Emily Armbruster
+output: github_document
+---
+
+# Background
+##### In this worksheet, we learn about PCA and how it is used to analyse data with many variables.
+
+# Section 1. PCA of UK food data
+##### Let's take a look at some data from the UK’s ‘Department for Environment, Food and Rural Affairs’ (DEFRA). It shows grams consumed (per person, per week) of 17 different types of foodstuff measured and averaged in the four countries of the United Kingdom in 1997.
+
+##### Food types = "variables"
+##### Countries = "observations"
+
+##### Let's read in the data!
+```{r}
+x <- read.csv("UK_foods.csv")
+```
+##### Use the nrow() and ncol() functions to determine the number of rows and columns in the dataframe. You could also use the structure function str() or dimensions function dim() to do this:
+```{r}
+nrow(x)
+ncol(x)
+str(x)
+dim(x)
+```
+##### The first step of our analysis is to examine the imported data to make sure it looks the way you would expect. We can use the view(), head() or tail() functions to investigate this. However, since we're going to knit this document, we will use head() and tail() but not view() as this will stop the document from knitting.
+
+```{r}
+head(x)
+tail(x)
+```
+##### Hm, it appears that the columns were set up incorrectly. The rownames are being considered part of the data. We can fix this by reading the file again and set row.names ot read.csv() to the first column. Do NOT use the rownames() function and then remove the first column of x. Everytime you run this code, it will remove the new first column of x.
+
+```{r}
+x <- read.csv("UK_foods.csv", row.names=1)
+head(x)
+```
+##### Much better!
+
+## Spotting major differences and trends:
+##### Our first instinct might be to make a bar plot...
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+par( mar=c (6, 10, 6, 6))
+```
+
+##### But this is also not particularly meaningful to look at.
+
+##### Try making the barplot stack elements for each "observation" by setting the beside argument to FALSE.
+
+```{r}
+barplot(as.matrix(x), col=rainbow(nrow(x)), beside = FALSE)
+```
+##### This is also not particularly helpful.
+
+##### Next, let's try pairwise comparisons:
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+
+##### Nope, still not so helpful.
+
+## PCA to the rescue
+##### Lots of functions and packages are available to perform PCA in R, but we'll start with basic R functions. prcomp()function expects the observations to be rows and the variables to be columns therefore we need to first transpose our data.frame matrix (switch rows and columns) with the t() transpose function.
+
+```{r}
+pca <- prcomp( t(x) )
+summary(pca)
+```
+
+##### Step 1: Identify principal axes. In other words, find the directions of maximal variance through the coordinates in the n dimensional space (n representing the number of variables in the data set). We call this new axis the first principal component (or PC1) of the data. The second best axis PC2. The first two new principal axis (PC1 and PC2) represent useful ways to view and further investigate our data set. Plot the data in the PC1 column against the PC2 column.
+
+```{r}
+pca
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500), col = c("white"))
+text(pca$x[,1], pca$x[,2], colnames(x), col = c("orange", "red", "blue", "green"))
+```
+
+##### Now we can use the PCA to determine relationships between the different countries' eating habits. Conveniently, in this case, PC1 and PC2 make up a total of ~97% of the total variation in the data set. Normally, we plot as many PCs to account for at least 70% of the variation.
+
+##### We can use the square of PCA standard deviation to calculate how much variation the original data in each PC accounted for. Or you can look in the second row of the summary:
+
+```{r}
+v <- round( pca$sdev^2/sum(pca$sdev^2) * 100 )
+v
+```
+```{r}
+z <- summary(pca)
+z$importance
+```
+
+##### These proportions of total variance is summarized in variances (epigenvalues) with respect to the principal component number:
+
+```{r}
+barplot(v, xlab="Principal Component", ylab="Percent Variation")
+```
+
+## Digging deeper (variable loadings)
+
+##### Loading scores tell us about the influence of each of the original variables upon the principal components with the prcomp() returned $rotation component. 
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+##### So we can see that fresh potatoes, soft drinks, fresh fruit and alcoholic drinks have the greatest influence on North Irelands PCA scores.
+
+##### Variable influence can also be summarized with a call to biplot(), see below:
+```{r}
+biplot(pca)
+```
+
+# Section 2. PCA of RNA-seq data
+##### RNA-seq results often contain a PCA, which can be used to verify that the control samples cluster together. But there is much more to be learned from these plots. 
+
+##### In this example, let's use PCA on a small RNA-seq count data set.
+
+```{r}
+rna.data <- read.csv("expression (1).csv", row.names=1)
+head(rna.data)
+```
+
+##### Transpose the data and then use PCA and plot:
+```{r}
+pca <- prcomp(t(rna.data), scale=TRUE)
+plot(pca$x[,1], pca$x[,2])
+```
+
+##### Note that there are two obvious clusters of points.
+
+##### Now  use the square of pca$sdev to calculate how much variation in the original data each PC accounts for:
+
+```{r}
+pca.var <- pca$sdev^2
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+pca.var.per
+```
+
+##### Use this data to generate a scree plot of these epigenvalues.
+
+```{r}
+barplot(pca.var.per, main="Scree Plot", 
+        xlab="Principal Component", ylab="Percent Variation")
+```
+##### PC1 makes up the vast majority of the variation in the data set then.
+
+##### The following code makes the original PCA plot more visually appealing, coloring the different experimental conditions and labeling the data:
+
+```{r}
+colvec <- colnames(rna.data)
+colvec[grep("wt", colvec)] <- "red"
+colvec[grep("ko", colvec)] <- "blue"
+
+plot(pca$x[,1], pca$x[,2], col=colvec, pch=16,
+     xlab=paste0("PC1 (", pca.var.per[1], "%)"),
+     ylab=paste0("PC2 (", pca.var.per[2], "%)"))
+
+text(pca$x[,1], pca$x[,2], labels = colnames(rna.data), pos=c(rep(4,5), rep(2,5)))
+```
+
+##### Use loading scores to identify the top ten genes that contribute to the variation in PC1. These genes would be good candidates for further investigation if we were looking at effects of some treatment or comparing gene expression in different cell types by looking at transcription.
+
+```{r}
+loading_scores <- pca$rotation[,1]
+gene_scores <- abs(loading_scores) 
+gene_score_ranked <- sort(gene_scores, decreasing=TRUE)
+top_10_genes <- names(gene_score_ranked[1:10])
+top_10_genes 
+```
+
+```{r}
+sessionInfo()
+```
+
