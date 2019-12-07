@@ -4,7 +4,7 @@ This is my work from [BGGN213, UC San Diego Fall 2019](https://bioboot.github.io
 Contents:
 - Class05 [R graphics](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture5_Hands-On_Worksheet/Data-Exploration-and-Visualization-in-R.md)
 - Class06 [R functions](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture6_Hands-On_Worksheet/Why%2C-when-and-how-of-writing-your-own-functions.md)
-- Class07 [R ???]
+- Class07 [R Practice with functions](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%207/Practice-with-R-Functions.md)
 - Class08 [PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture8_Hands-On_Worksheet/Hands-on-with-Principle-Component-Analysis--PCA-.md)
 - Class09
 - Class10
