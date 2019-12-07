@@ -1,0 +1,134 @@
+---
+title: "Practice with R functions"
+author: "Emily Armbruster"
+output: github_document
+---
+
+# Let's learn a little more about functions...
+##### and practice making another one.
+
+## First, let's discuss "stops" and "warnings" with the rescale() function, found at the link below:
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+##### This command will download functions to the global environment from an online file. Under "functions" in the global environment, double click on 'rescale'. This will open another window describing the rescale() function. Let's try it out on some simple data:
+
+```{r}
+rescale(1:10)
+```
+
+##### Simple enough... However, if you run rescale() on data with a missing value (NA), R will throw an error that says "non-numeric argument to binary operator."
+##### This is an example of a function with a "stop". We can use a "warning" when we want to warn a user that something might be suspicious or "stop" when the function does not work on the input. You would want to build stops and warnings into the early part of a function body so that R will abort running the program or warn the user early!
+
+##### It is helpful to write functions were the warning/stop is clear to the user: "rescale2" has an if loop. If x is not numeric, it will stop and tell the user "Input X should be numeric"
+
+# 
+
+##### Now we want to write a function called "both_na() that counts how many positions in two input vectors, x and y, where both have a missing value ("NA").
+
+##### Start with simple definition of the problem and solve a simple problem first with a short, working snippet of code.
+
+##### A quick Google search helps us find the which() function, which detects the NA items in a vector.
+
+# Lets define an example x and y
+```{r}
+x <- c( 1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3, 4)
+
+is.na(x)
+is.na(y)
+```
+##### So far so good...
+
+```{r}
+which(is.na(x))
+which(is.na(y))
+```
+##### As we can see, which() tells you the indices of the elements of the vector for which the internal function is true. Now try the and function build a function.
+
+```{r}
+is.na(x) & is.na(y)
+```
+##### This result makes sense because the functions only match in the 3rd position. Now we have our snippet of code. We can put it in our function!
+
+```{r}
+both_na <- function(x, y) {
+  sum(is.na(x) & is.na(y))
+}
+
+both_na(x,y)
+```
+
+##### Hooray! It works! Don't forget to give the function an input after you build it to see if it's working.
+
+# Now let's test some different inputs... (aka eejit proofing). 
+
+##### We want to make sure our function works for all inputs.
+
+##### If you make one input vector n times as long as the others (where n is an integer), you will not get a warning because R will iteratively compare the shorter vector against the longer one.
+
+
+```{r}
+y3 <- c(1, NA, NA, NA, NA, NA)
+
+both_na(x,y3)
+```
+
+##### We can visualize this repeating "recycling" function with a plot:
+
+```{r}
+plot(1:10, col=c("red", "blue"))
+```
+##### All the same, we might want to add a warning or stop when the vectors have different lengths.
+
+```{r}
+both_na2 <- function(x, y) {
+  if(length(x) != length(y))
+  stop("The vectors are not the same length!", call.=FALSE)
+  sum(is.na(x) & is.na(y))
+}
+
+```
+##### Note, the call.= tells the function not to report which part of the code is causing th error.
+
+# Now let's build a function to find the overall grade for some homework! 
+##### NOTE: You are going to drop the lowest single alignment score.
+
+```{r}
+# student 1
+c(100, 100, 100, 100, 100, 100, 100, 90)
+# student 2
+c(100, NA, 90, 90, 90, 90, 97, 80)
+```
+
+##### So you want a mean for all but the lowest values.
+
+##### This is how Barry solved it: -which.min removes the minimum value from vector student1
+```{r}
+which.min(student1)
+
+student1[-which.min(student1)]
+
+overall_grade <- function(x) {
+  mean(student1[-which.min(student1)])
+}
+
+overall_grade(student1)
+```
+
+##### But how do you deal with NA - a student is missing a homework! Function as written ignores NA so that if you have a set of scores "100, NA, NA, NA" the answer will be 100, which is not correct! You could replace NA with 0... But there's a variety of answers available.
+
+```{r}
+overall_grade <- function(x) {
+  sum(x[-which.min(x)], na.rm=TRUE) / (length(x) - 1)
+}
+
+overall_grade(student2)
+```
+
+```{r}
+sessionInfo()
+```
+

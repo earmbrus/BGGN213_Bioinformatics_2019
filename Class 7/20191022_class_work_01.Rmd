@@ -1,0 +1,207 @@
+---
+title: "In class work"
+author: "Emily Armbruster"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Let's Revisit our functions from Class 6...
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+##Contains the rescale function. Sources online file. If you don't click play, it will not execute. Once you do click play, it will add several functions in the Global Environment. Go to "rescale" under function. Double click on it, a second window will open containing the "rescale" function.
+
+## Let's try our rescale() function from the last day. The purpose is to rescale the data to lie between 1 and 10.
+
+```{r}
+rescale(1:10)
+```
+
+#Try with a different data set. Now we've added a NA and a string...:
+
+```{r}
+rescale( c(3, 10, NA, 7, "barry"))
+```
+#Whoops, produces an error!
+
+#Functions to be used in our own function writing: "warning" and "stop". This is used when we want to warn a user that something might be suspicious. Or "stop" when some output is not helpful. Terminates. "Stop" and "break" seem initially similar. But "stop" is something you build into your function to tell a user exactly what they did wrong. Put it at the top of the function so that it aborts early.
+
+#Only difference between "rescale" and "rescale2" functions is that "rescale2" has an if loop. Means if x is not numeric, stop running it and tell the user" Input X should be numeric"
+
+```{r}
+rescale2( c(3, 10, NA, 7, "barry"))
+```
+
+#Much clearer than "rescale" telling you what has gone wrong.
+
+#Looking more closely at "rescale2", notice the function "is.numeric". This evaluates the item in the parentheses and returns a logical answer: TRUE or FALSE.
+
+#Here are a few examples:
+
+```{r}
+is.numeric(4)
+
+is.numeric("four")
+```
+
+#The "!" character means "not". It changes all TRUE answers to FALSE and all FALSE answers to TRUE.
+
+```{r}
+!is.numeric(4)
+!is.numeric("four")
+```
+
+##So what makes a good function? What are you looking for when you're polishing a function you're writing?
+
+#It needs to give a correct answer and can be understood by the computer... and it has to be comprehensible to humans too! Use sensible names, for instance.
+
+##Let's do a few more examples:
+
+#Want to write a function called "both_na() that counts how many positions in two input vectors, x and y, where both have a missing value ("NA").
+
+#So should we start like this?
+```{r}
+# Should we start like this?
+both_na <- function(x, y) {
+ # something goes here?
+}
+```
+
+#NO! Start with simple definition of the problem. Solve a simple problem first so you know the answer you're trying to reach. Always use Google to try to find similar functions or functions that already do this job.
+
+#Found "which" function, which detects the NA items in a vector.
+
+# Lets define an example x and y
+```{r}
+x <- c( 1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3, 4)
+
+is.na(x)
+is.na(y)
+```
+#So far so good...
+
+```{r}
+which(is.na(x))
+which(is.na(y))
+```
+#So "which" tells you the indices of the elements of the vector for which the internal function is true.
+
+#Now try the and function...
+
+```{r}
+is.na(x) & is.na(y)
+```
+#That makes sense because the functions only match in the 3rd position.
+
+##Now we have our snippet of code. We can put it in our function!
+
+```{r}
+both_na <- function(x, y) {
+  sum(is.na(x) & is.na(y))
+}
+
+both_na(x,y)
+```
+
+#Hooray! It works! Don't forget to give the function an input after you build it to see if it's working.
+
+##Now let's test some different inputs... (aka eejit proofing). Function works for at least one situation. But we want to make sure it can work for other inputs as well!
+
+```{r}
+x <- c(NA, NA, NA)
+y1 <- c( 1, NA, NA)
+y2 <- c( 1, NA, NA, NA)
+
+both_na(x,y2)
+```
+
+#One might expect the difference in vector length to generate an error... but instead it begins to apply the shorter object length over the second object! x[1] compares to y2[1], x[2] compares to y2[2], x[3] compares to y2[3], x[1] compares to y2[4].
+
+#Make y3 longer...
+
+```{r}
+y3 <- c(1, NA, NA, NA, NA, NA)
+
+both_na(x,y3)
+```
+
+#No warning because y3 is 2x as long as x vector.
+
+#We can visualize this repeating "recycling" function with a plot:
+
+```{r}
+plot(1:10, col=c("red", "blue"))
+```
+#This would be a case where one might want to add a warning or stop when the vectors have different lengths.
+
+```{r}
+both_na2 <- function(x, y) {
+  if(length(x) != length(y))
+  stop("The vectors are not the same length!", call.=FALSE)
+  sum(is.na(x) & is.na(y))
+}
+
+both_na2(x, y3)
+```
+#Note, the call.= tells the function not to report which part of the code is causing th error.
+
+##Now let's build a function to find the overall grade for some homework! You are going to drop the lowest single alignment score.
+
+```{r}
+# student 1
+c(100, 100, 100, 100, 100, 100, 100, 90)
+# student 2
+c(100, NA, 90, 90, 90, 90, 97, 80)
+```
+
+#So you want a mean for all but the lowest values.
+
+#This was what I experimented with...
+
+```{r}
+student1 <- c(100, 100, 100, 100, 100, 100, 100, 90)
+student2 <- c(100, NA, 90, 90, 90, 90, 97, 80)
+
+overall_grade <- function(x) {
+  mean(x - min(x))
+}
+
+overall_grade(student1)
+```
+```{r}
+sum(student1) - min(student1)
+test <- c(4, 3, 4)
+min(student1)
+mean(sum(test) - 3)
+```
+#But the mean function syntax does not work in the way it's being applied here
+
+#This is how Barry solved it: -which.min removes the minimum value from vector student1
+```{r}
+which.min(student1)
+
+student1[-which.min(student1)]
+
+overall_grade <- function(x) {
+  mean(student1[-which.min(student1)])
+}
+
+overall_grade(student1)
+```
+
+#But how do you deal with NA - a student is missing a homework! Function as written ignores NA so that if you have a set of scores "100, NA, NA, NA" the answer will be 100, which is not correct! You could replace NA with 0... But there's a variety of answers available.
+
+```{r}
+overall_grade <- function(x) {
+  sum(x[-which.min(x)], na.rm=TRUE) / (length(x) - 1)
+}
+
+overall_grade(student2)
+```
+
