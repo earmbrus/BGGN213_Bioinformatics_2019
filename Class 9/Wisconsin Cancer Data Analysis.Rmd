@@ -1,0 +1,229 @@
+---
+title: "Wisconsin Cancer Data Analysis"
+author: "Emily Armbruster"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Wisconsin Cancer Data Analysis
+
+##### Create dataframe of this data...
+```{r}
+wisc.df <- read.csv("WisconsinCancer.csv")
+```
+
+##### Look at data
+
+```{r}
+head(wisc.df)
+```
+
+##### How many observations do we have?
+
+```{r}
+str(wisc.df)
+```
+
+##### We have 569 observations (samples)
+
+##### We want R to print information from the dataframe in some text... Here we examine data from `r nrow(wisc.df)` patient samples.
+
+```{r}
+table(wisc.df$diagnosis)
+```
+
+```{r}
+diagnosis <- wisc.df$diagnosis
+
+diagnosis["B"]
+
+diagnosis["M"]
+```
+
+#### In this data set we have `r diagnosis["B"]` cancer and `r diagnosis["M"]` non - cancer. How many variables/features in the data are suffixed with _mean? 
+
+```{r}
+colnames(wisc.df)
+```
+
+##### We have 31 variables.
+
+##### Use grep function to select columns! grep() returns the indices corresponding to each column that has "_mean". We can use the length() function to then find out how many rows end in "_mean".
+
+```{r}
+grep("_mean", colnames(wisc.df))
+```
+
+```{r}
+length(grep("_mean", colnames(wisc.df)))
+```
+
+# Now we want to do PCA on the data!
+
+##### Find the standard deviation and mean of each column. The round() function second argument tells R how many decimal places to round to.
+
+#### Apply function arguments: "apply standard deviation over the columns of the wisc.data"
+
+```{r}
+wisc.data <- as.matrix(wisc.df[,3:32])
+  
+round( apply(wisc.data, 2, sd), 3)
+```
+
+##### Now let's use the prcomp() function to conduct PCA:
+
+```{r}
+wisc.pr <- prcomp(wisc.data, scale=TRUE)
+summary(wisc.pr)
+```
+
+##### R generated 30 PCs. The amount of variance captured by one PC is the "cumulative proportion"
+
+##### Plot PC1 vs PC2 and color by M/B cancer/Non-cancer diagnosis.
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,2])
+
+diagnosis_plot <- wisc.df$diagnosis
+plot(wisc.pr$x[,1:2], col = diagnosis_plot)
+```
+##### We see that the benign tumor samples are all similar, but the malignant ones are very different from normal cells and from each other. 
+
+```{r}
+x <- summary(wisc.pr) 
+x$importance[,"PC1"]
+```
+
+```{r}
+x$importance[3,] > 0.7
+```
+
+```{r}
+x$importance[3,] > 0.7
+```
+
+##### Use which function to select TRUE options
+
+```{r}
+which(x$importance[3,] > 0.7)
+```
+
+# Part 3 of handout:
+
+##### First we need to scale the data.
+
+```{r}
+data.scaled <- scale(wisc.data)
+```
+
+##### Then find distance between scaled pairs of observations:
+
+```{r}
+data.dist <- dist(data.scaled)
+```
+
+##### Now make hierachical model with complete linkage. Specify the method!
+```{r}
+wisc.hclust <- hclust(data.dist, method = "complete")
+```
+
+##### ... And plot the hc and select cutting location:
+
+```{r}
+plot(wisc.hclust)
+abline(h=20, col="red", lty=2)
+```
+
+##### Now we can see where we want to cut the tree to generate four clusters, cut the tree!
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k = 4)
+```
+
+##### Use a table to compare whether the different diagnoses are more or less represented in different clusters:
+
+```{r}
+table(wisc.hclust.clusters, diagnosis)
+```
+
+##### Can you make the prediction better with a different number of clusters?
+
+```{r}
+wisc.hclust.clusters.k2 <- cutree(wisc.hclust, k = 2)
+table(wisc.hclust.clusters.k2, diagnosis)
+```
+
+##### That's a lot worse.
+
+```{r}
+wisc.hclust.clusters.k5 <- cutree(wisc.hclust, k = 5)
+table(wisc.hclust.clusters.k5, diagnosis)
+```
+
+```{r}
+wisc.hclust.clusters.k8 <- cutree(wisc.hclust, k = 8)
+table(wisc.hclust.clusters.k8, diagnosis)
+```
+
+# Combining methods:
+
+##### First cluster!
+
+```{r}
+wisc.pr.hclust <- hclust(data.dist, method = "ward.D2")
+```
+
+##### Cut the tree
+
+```{r}
+grps <- cutree(wisc.pr.hclust, k=2)
+table(grps)
+```
+
+##### Compare to diagnosis:
+
+```{r}
+table(grps, diagnosis)
+```
+
+##### Make a plot of this! Compare coloring by groups with coloring by diagnosis
+
+```{r}
+plot(wisc.pr$x[,1:2], col=grps)
+plot(wisc.pr$x[,1:2], col=diagnosis)
+```
+
+##### Hm, looks like the colors have been swapped... Let's make them match by turning groups into a factor and reorder levels...
+
+```{r}
+g <- as.factor(grps)
+levels(g)
+
+grelevel <- relevel(g, 2)
+levels(grelevel)
+```
+
+##### Try plotting again:
+```{r}
+plot(wisc.pr$x[,1:2], col = grelevel)
+plot(wisc.pr$x[,1:2], col=diagnosis)
+```
+
+# Section 7: Prediction
+
+##### Use the 'predict()' function to take previously made PCA model and some new cancer data...
+
+```{r}
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+
+plot(wisc.pr$x[,1:2], col=grelevel)
+points(npc[,1], npc[,2], col="blue", pch=16, cex=3)
+text(npc[,1], npc[,2], c(1,2), col="white")
+```
+
