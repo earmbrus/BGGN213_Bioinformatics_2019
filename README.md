@@ -5,4 +5,12 @@ Contents:
 - Class05 [R graphics](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture5_Hands-On_Worksheet/Data-Exploration-and-Visualization-in-R.md)
 - Class06 [R functions](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture6_Hands-On_Worksheet/Why%2C-when-and-how-of-writing-your-own-functions.md)
 - Class07 [R ???]
-- Class08
+- Class08 [PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture8_Hands-On_Worksheet/Hands-on-with-Principle-Component-Analysis--PCA-.md)
+- Class09
+- Class10
+- Class 11
+- Class 12
+- Class 14
+- Class 15
+- Class 16
+- Class 18
