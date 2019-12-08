@@ -12,4 +12,4 @@ Contents:
 - Class 14 [Introduction to DESeq2](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%2013/Introduction_to_DESeq2.md)
 - Class 15 [Gene List Analysis and Genome Annotation](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%2014/20191115_inclass_work.md)
 - Class 16 [Network Analysis with Cytoscape](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%2017/Metagenomics-co-occurance-networks.md)
-- Class 18
+- Class 18 [Cancer and Personalized Immunotherapy](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Cancer_Lecture/Cancer-Lecture.md)
