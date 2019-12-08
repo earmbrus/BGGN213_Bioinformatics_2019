@@ -41,13 +41,7 @@ pdb <- read.pdb("1HSG")
 pdb
 ```
 
-##### Access atoms.
-
-```{r}
-pdb$atom
-```
-
-##### That's a lot of atoms! This looks similar to when we looked at the pdb file in VMD. 
+##### Access atoms via pdb$atom. This looks similar to when we looked at the pdb file in VMD. 
 
 ##### This is how you display residue types for specific atops.
 
