@@ -1,0 +1,88 @@
+---
+title: "Cancer and Personalized Immunotherapy"
+author: "Emily Armbruster"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Today we're going to show part of how bioinformatics can be used to develop personal vaccines to combat cancer:
+
+##### Download packages:
+
+##### BiocManager::install( c("GenomicDataCommons", "TCGAbiolinks", "maftools", "msa") )
+
+```{r}
+library(GenomicDataCommons)
+library(TCGAbiolinks)
+library(maftools)
+```
+
+```{r}
+status()
+```
+
+##### We will typically start our interaction with the GDC by searching the resource to find data that we are interested in investigating further. In GDC speak this is called “Querying GDC metadata”. Metadata here refers to the extra descriptive information associated with the actual patient data (i.e. ‘cases’) in the GDC. For example: Our query might be ‘find how many patients were studied for each major project’ or ‘find and download all gene expression quantification data files for all pancreatic cancer patients’. We will answer both of these questions below.
+
+##### The are four main sets of metadata that we can query, namely projects(), cases(), files(), and annotations(). We will start with projects()
+
+```{r}
+projects <- getGDCprojects()
+head(projects)
+```
+
+##### If you use the View(projects) function call you can see all the project names (such as Neuroblastoma, Pancreatic Adenocarcinoma, etc.) along with their project IDs (such as TARGET-NBL, TCGA-PAAD, etc.) and associated information.
+
+```{r}
+View(projects)
+```
+
+##### Moving onto cases() we can use an example from the package associated publication to answer our first from question above (i.e. find the number of cases/patients across different projects within the GDC):
+
+```{r}
+cases_by_project <- cases() %>%
+  facet("project.project_id") %>%
+  aggregations()
+head(cases_by_project)
+```
+
+##### Write the R code to make a barplot of the cases per project. Lets plot this data with a log scale for the y axis (log="y"), rotated axis labels (las=2) and color the bar coresponding to the TCGA-PAAD project.
+
+```{r}
+x <- cases_by_project$project.project_id
+
+# Make a custom color vector for our plot
+colvec <- rep("lightblue", nrow(x))
+colvec["TCGA-PAAD"] <- "red"
+
+```
+
+```{r}
+library(bio3d)
+read.fasta("lecture18_sequences.fa")
+sequences <- read.fasta("lecture18_sequences.fa")
+```
+
+##### From this sequence alignment, calculate the positional identity scores.
+```{r}
+ide <- conserv(sequences$ali, method="identity")
+mutant.sites <- which(ide < 1) 
+
+gaps <- gap.inspect(sequences)
+mutant.sites <- mutant.sites[mutant.sites %in% gaps$f.inds]
+
+mutant.sites
+```
+
+```{r}
+mutant.names <- paste0(sequences$ali["P53_wt",mutant.sites],
+                       mutant.sites,
+                       sequences$ali["P53_mutant",mutant.sites])
+
+mutant.names
+```
+
+##### Sequence positions surounding each mutant site can be found by further analysis...
+
