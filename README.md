@@ -7,7 +7,6 @@ Contents:
 - Class07 [R Practice with functions](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%207/Practice-with-R-Functions.md)
 - Class08 [PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture8_Hands-On_Worksheet/Hands-on-with-Principle-Component-Analysis--PCA-.md)
 - Class09 [Practice with Clustering and PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%209/Wisconsin-Cancer-Data-Analysis.md)
-- Class10
 - Class 11
 - Class 12
 - Class 14
