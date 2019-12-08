@@ -1,0 +1,229 @@
+---
+title: "20191115_in-class_work"
+author: Emily Armbruster
+output: github_document
+---
+
+# Introduction
+
+##### Pathway analysis (gene set anaysis and over-representation analysis) maps lists of genes collected from differential expression analysis to different known pathways, processes and functions.
+
+##### While there are many packages to do pathway analysis in R, we're going to look at the GAGE package and do KEGG pathway analysis on the RNA-Seq based differential expression results obtained last class.
+
+##### The data we will use comes from GEO entry:GSE237704.
+
+# Section 1: Differential Expression Analysis
+
+##### The first step is to load our data files:
+
+```{r}
+library(DESeq2)
+```
+
+###### Rename the files upoaded and take a look.
+```{r}
+metaFile <- "GSE37704_metadata.csv"
+countFile <- "GSE37704_featurecounts.csv"
+
+colData <- read.csv(metaFile, row.names=1)
+head(colData)
+countData = read.csv(countFile, row.names=1)
+head(countData)
+```
+
+##### In order for our analysis to be successful, we need the column number from the countsData to be the same as the number of rows in the colData. So we need to remove the "length" column from the countsData. Make new countData matrix by saying "as matrix" without the first column.
+
+```{r}
+fixed_countData <- as.matrix(countData[,-1])
+head(fixed_countData)
+```
+
+##### This data has a lot of zeroes... Let's remove them.
+
+```{r}
+fixed_countData_nozeroes <- fixed_countData[rowSums(fixed_countData) > 0, ]
+nrow(fixed_countData_nozeroes)
+```
+
+##### First thing to do in analysis: plot it! But we have 15 thousand genes.
+
+##### Use PCA to analyze all these genes.
+
+```{r}
+PC <- prcomp(t(fixed_countData_nozeroes))
+plot(PC)
+```
+
+```{r}
+summary(PC)
+```
+
+##### Now make PC1 vs PC2 plot...
+
+
+```{r}
+plot(PC$x[,1:2])
+```
+
+##### Next, color columns to tell which points belong to which gene...
+##### The first three genes are the controls and the second set of 3 are the knockdowns. So therefore, make the "mycols" vector to consider that.
+
+```{r}
+mycols <- c(rep("blue", 3), rep("red", 3))
+mycols
+plot(PC$x[,1:2], col=mycols)
+```
+
+##### Now compare controls to the knockdowns with a volcano plot
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData = fixed_countData_nozeroes, 
+                              colData=colData, 
+                              design=~condition)
+dds <- DESeq(dds)
+```
+
+```{r}
+res <- results(dds)
+res
+```
+```{r}
+plot( res$log2FoldChange,  -log(res$padj), 
+      xlab="Log2(FoldChange)",
+      ylab="-Log(P-value)")
+
+# Add some cut-off lines
+abline(v=c(-2,2), col="darkgray", lty=2)
+abline(h=-log(0.05), col="darkgray", lty=2)
+```
+
+```{r}
+# Setup our custom point color vector 
+mycols <- rep("gray", nrow(res))
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+
+# Volcano plot with custom colors 
+plot( res$log2FoldChange,  -log(res$padj), 
+ col=mycols, ylab="-Log(P-value)", xlab="Log2(FoldChange)" )
+
+# Cut-off lines
+abline(v=c(-2,2), col="gray", lty=2)
+abline(h=-log(0.1), col="gray", lty=2)
+```
+
+```{r}
+
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+x <- as.data.frame(res)
+x$symbol <- mapIds(org.Hs.eg.db, 
+                   keys=row.names(x),
+                   keytype="ENSEMBL",
+                   column="SYMBOL",
+                   multiVals="first")
+```
+
+```{r}
+library(EnhancedVolcano)
+EnhancedVolcano(x,
+    lab = x$symbol,
+    x = 'log2FoldChange',
+    y = 'pvalue')
+```
+
+##### Since we mapped and counted against the Ensembl annotation, our results only have information about Ensembl gene IDs. However, our pathway analysis downstream will use KEGG pathways, and genes in KEGG pathways are annotated with Entrez gene IDs. So lets add them as we did the last day.
+
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), #Where are your gene IDs? 
+                    keytype="ENSEMBL", #What format are your current IDs?
+                    column="SYMBOL", #What do you want your new IDs to be? Picking from the org.Hs.eg.db columns.
+                    multiVals="first")
+
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype="ENSEMBL",
+                    column="ENTREZID",
+                    multiVals="first")
+
+res$name =   mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype="ENSEMBL",
+                    column="GENENAME",
+                    multiVals="first")
+
+head(res, 10)
+```
+
+#Section 2. Pathway Analysis
+
+##### Here we are going to use the gage package for pathway analysis. Once we have a list of enriched pathways, we're going to use the pathview package to draw pathway diagrams, shading the molecules in the pathway by their degree of up/down-regulation.
+##### First, install BioConductor packages "pathview", "gage" and "gageData". Then load them...
+
+```{r}
+library(pathview)
+library(gage)
+library(gageData)
+```
+
+##### Load up KEGGS dataset on metabilism and signaling.
+
+```{r}
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+```
+
+##### Examine first three pathways:
+
+```{r}
+head(kegg.sets.hs, 3)
+```
+
+##### The main gage() function requires a named vector of fold changes, where the names of the values are the Entrez gene IDs.
+
+##### Note that we used the mapIDs() function above to obtain Entrez gene IDs (stored in 'res$entrez') and we have the fold change results from DESeq2 analysis (stored in res$log2FoldChange).
+
+```{r}
+foldchanges = res$log2FoldChange
+names(foldchanges) = res$entrez
+head(foldchanges)
+```
+
+##### Now, let’s run the gage pathway analysis.
+
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+attributes(keggres)
+```
+
+##### Want to look at downregulated genes specifically...
+
+```{r}
+head(keggres$less)
+```
+
+##### "hsa04110" is the KEGG acession for the Cell cycle pathway. We can use this to retrieve this pathway.
+
+```{r}
+pathview(gene.data=foldchanges, pathway.id="hsa04110")
+```
+##### The image appears under "files" in the right hand side of R studio.
+##### To include it in files uploaded to Git... Use ![] ("name_of_file")
+
+![My first pathway](./hsa04110.pathway.png)
+
+
+
+
+
+
