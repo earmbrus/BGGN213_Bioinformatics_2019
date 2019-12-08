@@ -1,4 +1,4 @@
-Structural Bioinformatics
+Untitled
 ================
 Emily Armbruster
 
@@ -213,8 +213,8 @@ pdb <- read.pdb("1hel")
 modes <- nma(pdb)
 ```
 
-    ##  Building Hessian...     Done in 0.023 seconds.
-    ##  Diagonalizing Hessian...    Done in 0.124 seconds.
+    ##  Building Hessian...     Done in 0.02 seconds.
+    ##  Diagonalizing Hessian...    Done in 0.136 seconds.
 
 ``` r
 m7 <- mktrj(modes,
