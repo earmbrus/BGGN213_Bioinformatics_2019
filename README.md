@@ -1,4 +1,5 @@
 # BGGN213_Bioinformatics_2019
+logo: /miro.medium.com/max/1024/1*8XSOdpRkyV4BC7E3yKqXZA.jpeg
 This is my work from [BGGN213, UC San Diego Fall 2019](https://bioboot.github.io/bggn213_F19/)
 
 Contents:
