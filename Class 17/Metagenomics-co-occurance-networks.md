@@ -1,6 +1,8 @@
-Untitled
+Network Analysis
 ================
 Emily Armbruster
+
+# We are going to do a little bit of network analysis with cytoscape\!
 
 ##### First load RCy3, igraph and RColorBrewer
 
@@ -101,15 +103,37 @@ styles <- getVisualStyleNames()
 styles
 ```
 
-    ##  [1] "size_rank"            "Directed"             "default"             
-    ##  [4] "Sample3"              "BioPAX_SIF"           "Minimal"             
-    ##  [7] "Gradient1"            "Marquee"              "Sample1"             
-    ## [10] "Nested Network Style" "Universe"             "BioPAX"              
-    ## [13] "Curved"               "Ripple"               "Sample2"             
-    ## [16] "Solid"                "Big Labels"           "default black"
+    ##  [1] "Sample2"              "Curved"               "BioPAX"              
+    ##  [4] "default black"        "Marquee"              "Universe"            
+    ##  [7] "Directed"             "Minimal"              "Solid"               
+    ## [10] "Sample1"              "Gradient1"            "Big Labels"          
+    ## [13] "Sample3"              "size_rank"            "default"             
+    ## [16] "Nested Network Style" "BioPAX_SIF"           "Ripple"
 
 ##### Now we know that out connection between R and Cytoscape is running we can get to work with our real metagenomics data. Our first step is to read our data into R itself.
 
 ## Read our metagenomics data
 
 ##### We will read in a species co-occurrence matrix that was calculated using Spearman Rank coefficient. (see reference Lima-Mendez et al. (2015) for details).
+
+``` r
+## scripts for processing located in "inst/data-raw/"
+prok_vir_cor <- read.delim("virus_prok_cor_abundant.tsv", stringsAsFactors = FALSE)
+
+## Have a peak at the first 6 rows
+head(prok_vir_cor)
+```
+
+    ##       Var1          Var2    weight
+    ## 1  ph_1061 AACY020068177 0.8555342
+    ## 2  ph_1258 AACY020207233 0.8055750
+    ## 3  ph_3164 AACY020207233 0.8122517
+    ## 4  ph_1033 AACY020255495 0.8487498
+    ## 5 ph_10996 AACY020255495 0.8734617
+    ## 6 ph_11038 AACY020255495 0.8740782
+
+##### Here we will use the igraph package to convert the co-occurrence dataframe into a network that we can send to Cytoscape. In this case our graph is undirected (so we will set directed = FALSE) since we do not have any information about the direction of the interactions from this type of data.
+
+``` r
+g <- graph.data.frame(prok_vir_cor, directed = FALSE)
+```
