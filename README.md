@@ -8,7 +8,7 @@ Contents:
 - Class08 [PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Lecture8_Hands-On_Worksheet/Hands-on-with-Principle-Component-Analysis--PCA-.md)
 - Class09 [Practice with Clustering and PCA](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class%209/Wisconsin-Cancer-Data-Analysis.md)
 - Class 11 [Structural Bioinformatics](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class11/Class_11.md)
-- Class 12
+- Class 12 [Receptor-Based Drug Discovery Modeling](https://github.com/earmbrus/BGGN213_Bioinformatics_2019/blob/master/Class12_in_class_work/Class-Twelve-In-Class-Work.md)
 - Class 14
 - Class 15
 - Class 16
