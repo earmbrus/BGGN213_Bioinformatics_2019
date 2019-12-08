@@ -1,0 +1,116 @@
+---
+title: "Structural Bioinformatics"
+author: "Emily Armbruster"
+output: github_document
+---
+
+# What is in the PDB database?
+
+```{r}
+data <- read.csv("Data_Export_Summary_(PDB).csv")
+data
+```
+##### Download a CSV file from the PDB site (accessible from “Analyze” -> “PDB Statistics” >“by Experimental Method and Molecular Type”. Move this CSV file into your RStudio project and determine the percentage of structures solved by X-Ray and Electron Microscopy. 
+```{r}
+sum(data$Total)
+```
+```{r}
+ans <- data$Total/sum(data$Total) * 100
+names(ans) <- data$Experimental.Method
+round(ans, 2)
+ans[1] + ans[3]
+
+```
+##### The percentage of structures solved by X-Ray and Electron Microscopy is ~91.58%.
+
+##### Can you determine what proportion of structures are protein?
+
+```{r}
+prop <- (sum(data$Proteins))/sum(data$Total)
+prop
+```
+##### ~92.71% of the structures are proteins.
+
+# Working with biomolecular data in R.
+
+##### Let's use the bio3d package to read a pdb file in R.
+
+```{r}
+library(bio3d)
+pdb <- read.pdb("1HSG")
+pdb
+```
+
+##### Access atoms.
+
+```{r}
+pdb$atom
+```
+
+##### That's a lot of atoms! This looks similar to when we looked at the pdb file in VMD. 
+
+##### This is how you display residue types for specific atops.
+
+```{r}
+pdb$atom[1,"resid"]
+```
+
+##### This is how you change 3 letter code to 1 letter code:
+
+```{r}
+aa321 (pdb$atom[pdb$calpha, "resid"])
+```
+
+##### What if you want to return all C-alpha atoms (return their indices)?
+
+```{r}
+
+ca.inds <- atom.select(pdb, "calpha")
+ca.inds
+
+atom.select.pdb(pdb, string = "calpha")
+```
+
+##### Use the Bio3D write.pdb() function to write out a protein only PDB file for viewing in VMD. Also write out a second separate PDB file for the ligand with residue name MK1
+
+##### First select "protein" then write out a file: "1hsg_protein.pdb"
+
+##### "ligand" is the string argument value and setting "value" to TRUE causes it to create pdb file.
+
+```{r}
+atom.select(pdb, "ligand", value = TRUE)
+```
+
+```{r}
+prot <- atom.select(pdb, "protein", value = TRUE)
+write.pdb(prot, file = "1hsg_protein.pdb")
+```
+
+##### Now the same for ligand...
+
+```{r}
+lig <- atom.select(pdb, "ligand", value = TRUE)
+write.pdb(lig, file = "1hsg_protein.pdb")
+```
+
+##### Load package "devtools"
+
+Command:
+install.packages("devtools")
+devtools::install_bitbucket
+
+```{r}
+library("bio3d.view")
+view(pdb, "overview", col="sse")
+pdb <- read.pdb("1hel")
+```
+
+# Normal mode analysis calculation:
+```{r}
+modes <- nma(pdb)
+m7 <- mktrj(modes,
+ mode=7,
+ file="mode_7.pdb")
+view(m7, col=vec2color( rmsf(m7) ))
+```
+
